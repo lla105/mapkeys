@@ -1,0 +1,68 @@
+import pyautogui
+from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly, kCGNullWindowID
+from pynput import keyboard
+import threading
+
+# Function to get scrcpy window position and size
+def get_scrcpy_window_rect():
+    options = kCGWindowListOptionOnScreenOnly
+    window_list = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
+    
+    for window in window_list:
+        if window.get('kCGWindowOwnerName') == 'scrcpy':
+            x = window['kCGWindowBounds']['X']
+            y = window['kCGWindowBounds']['Y']
+            width = window['kCGWindowBounds']['Width']
+            height = window['kCGWindowBounds']['Height']
+            print('Scrcpy window position:', x, y, width, height)
+            return (x, y, width, height)
+    
+    return None
+
+# Function to click within scrcpy window
+def click_in_scrcpy(x, y, scrcpy_rect):
+    scrcpy_x, scrcpy_y, _, _ = scrcpy_rect
+    print('Clicking at:', scrcpy_x + x, scrcpy_y + y)
+    pyautogui.click(scrcpy_x + x, scrcpy_y + y)
+
+# Define key mappings
+key_mappings = {
+    '1': (100, 100),    # Example: Pressing '1' will click at (1000, 1000) within scrcpy
+    # Add more key mappings as needed
+}
+
+# Function to handle key press events
+def on_press(key):
+    try:
+        # Convert key to string representation
+        key_str = key.char
+        print('Key pressed:', key_str)
+        if key_str in key_mappings:
+            x, y = key_mappings[key_str]
+            scrcpy_rect = get_scrcpy_window_rect()
+            if scrcpy_rect:
+                print('Scrcpy window detected.')
+                click_in_scrcpy(x, y, scrcpy_rect)
+            else:
+                print("Scrcpy window not found or not visible on screen.")
+    except AttributeError:
+        # Key is not a character key
+        pass
+
+# Listener thread function
+def listen_for_keys():
+    with keyboard.Listener(on_press=on_press) as listener:
+        listener.join()
+
+# Main thread (or wherever you start your script)
+if __name__ == "__main__":
+    # Start listener in a separate thread
+    key_listener_thread = threading.Thread(target=listen_for_keys)
+    key_listener_thread.start()
+
+    # Your main script logic continues here (if any)
+    # For this example, it continues to print 'Hello' every second
+    import time
+    while True:
+        print('Hello')
+        time.sleep(1)
