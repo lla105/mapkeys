@@ -10,23 +10,9 @@ windowheight= 0
 windowPOSx = 0
 windowPOSy = 0
 
-# Function to get scrcpy window position and size
-def get_scrcpy_window_center():
-    options = kCGWindowListOptionOnScreenOnly
-    window_list = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
-    for window in window_list:
-        if window.get('kCGWindowOwnerName') == 'scrcpy':
-            x = window['kCGWindowBounds']['X']
-            y = window['kCGWindowBounds']['Y']
-            width = window['kCGWindowBounds']['Width']
-            height = window['kCGWindowBounds']['Height']
-            # Calculate center of scrcpy window
-            center_x = x + width // 2
-            center_y = y + height // 2
-            return (center_x, center_y)
-    return None
-
 def get_scrcpy_window_pos():
+    global windowPOSx, windowPOSy, windowwidth, windowheight
+
     options = kCGWindowListOptionOnScreenOnly
     window_list = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
 
@@ -40,7 +26,7 @@ def get_scrcpy_window_pos():
             # print( ' >>>> CLICKING: ', width//2,height//2)
             # pyautogui.click(width/22, height//2)
                 # time.sleep(1)
-            print()
+            # print()
             return (windowPOSx, windowPOSy, windowwidth, windowheight)
         
 def print_pos():
@@ -48,7 +34,7 @@ def print_pos():
         xx,yy = pyautogui.position()
         pos = get_scrcpy_window_pos()
         # print(f' scrcpy pos @ ({pos[0]},{pos[1]}) , w: {pos[2]} h: {pos[3]}')
-        print(f' scrcpy pos @ ({windowPOSx},{windowPOSy}) , w: {windowwidth} h: {windowheight}')
+        # print(f' scrcpy pos @ ({windowPOSx},{windowPOSy}) , w: {windowwidth} h: {windowheight}')
         time.sleep(0.5)
 
 
@@ -58,6 +44,7 @@ def listen_for_keys():
 def scale_coordinates(x,y):
     x = x/1080*windowwidth
     y = y/1920*windowheight
+    return (x,y)
 def on_press(key):
     try:
         # Convert key to string representation
@@ -65,18 +52,35 @@ def on_press(key):
         print('Key pressed:', key_str)
         if key_str in coordinates:
             x, y = coordinates[key_str]
-
-            print(' >>>> converting :::: ', x , y)
-            scrcpy_rect = get_scrcpy_window_center()
+            x,y = scale_coordinates(x,y)
+            # print(' >>>> converting :::: ', x , y)
+            scrcpy_rect = get_scrcpy_window_pos()
             if scrcpy_rect:
                 print('Scrcpy window detected.')
-                # click_in_scrcpy(x, y, scrcpy_rect)
+                click_in_scrcpy(x, y, scrcpy_rect)
             else:
                 print("Scrcpy window not found or not visible on screen.")
     except AttributeError:
         # Key is not a character key
+        print(' pressed : not a char key', key)
+        if key == keyboard.Key.enter:
+            x,y = coordinates['enter']
+            x,y = scale_coordinates(x,y)
+            scrcpy_rect = get_scrcpy_window_pos()
+            if scrcpy_rect:
+                click_in_scrcpy(x, y, scrcpy_rect)
+        elif key == keyboard.Key.backspace:
+            x,y = coordinates['backspace']
+            x,y = scale_coordinates(x,y)
+            scrcpy_rect = get_scrcpy_window_pos()
+            if scrcpy_rect:
+                click_in_scrcpy(x, y, scrcpy_rect)
         pass
-
+# Function to click within scrcpy window
+def click_in_scrcpy(x, y, scrcpy_rect):
+    scrcpy_x, scrcpy_y, _, _ = scrcpy_rect
+    print('Clicking at:', scrcpy_x + x, scrcpy_y + y)
+    pyautogui.click(scrcpy_x + x, scrcpy_y + y)
 
 
 coordinates = {'backbutton' : (81,660), 
@@ -89,14 +93,20 @@ coordinates = {'backbutton' : (81,660),
                'canadapost' : (850,1430),
                'DHL' : (850, 1125),
                'unit#' : (542, 1074),
-               '1' : (125,1485),
-               '2' : (379, 1500),
-               '3' : (616, 1500),
-               '5' : (365, 1515),
-               '0' : (375, 1849),
+               '1' : (125,1455),
+               '2' : (379, 1455),
+               '3' : (616, 1455),
+               '4' : (125, 1570),
+               '5' : (365, 1570),
+               '6' : (616, 1570),
+               '7' : (125, 1687),
+               '8' : (380, 1687),
+               '9' : (616, 1687),
+               '0' : (375, 1800),
+               'backspace' : (900, 1451),
+               'enter' : (897, 1790),
                'selectbuilding' : (151,1040),
                'selectunit' : (237,1140),
-               'enter' : (897, 1784),
                'small' : (158, 1087),
                'medium' : (760,1070),
                'large' : (140, 1310),
@@ -107,23 +117,8 @@ coordinates = {'backbutton' : (81,660),
 
 # Main script logic
 if __name__ == "__main__":
-    # Get center of scrcpy window
-    # scrcpy_center = get_scrcpy_window_center()
-
     thread1 = threading.Thread(target=print_pos)
     thread1.start()
     thread2 = threading.Thread(target=listen_for_keys)
     thread2.start()
 
-    print( 'scrcpy cetner : ', scrcpy_center)
-    # if scrcpy_center:
-    #     print(f"Clicking at the center of scrcpy window: {scrcpy_center}")
-    #     for i in range(7):
-    #         # pyautogui.moveTo(scrcpy_center[0], scrcpy_center[1])
-    #         pyautogui.click(scrcpy_center[0], scrcpy_center[1])
-    #         # pyautogui.dragTo(100, 200, button='left')
-    #         print('click....')
-    #         time.sleep(1)        
-
-    # else:
-    #     print("scrcpy window not found or not visible on screen.")
