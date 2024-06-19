@@ -47,41 +47,31 @@ def scale_coordinates(x,y):
     return (x,y)
 def on_press(key):
     try:
-        # Convert key to string representation
         key_str = key.char
-        print('Key pressed:', key_str)
+        print('>>>Key pressed:', key_str)
+        if (isinstance(key, keyboard.KeyCode) and key.vk == 76):
+            send_click_command('enter')
         if key_str in coordinates:
-            x, y = coordinates[key_str]
-            x,y = scale_coordinates(x,y)
-            # print(' >>>> converting :::: ', x , y)
-            scrcpy_rect = get_scrcpy_window_pos()
-            if scrcpy_rect:
-                print('Scrcpy window detected.')
-                click_in_scrcpy(x, y, scrcpy_rect)
-            else:
-                print("Scrcpy window not found or not visible on screen.")
+            send_click_command(key_str)
+
     except AttributeError:
         # Key is not a character key
-        print(' pressed : not a char key', key)
-        if key == keyboard.Key.enter:
-            x,y = coordinates['enter']
-            x,y = scale_coordinates(x,y)
-            scrcpy_rect = get_scrcpy_window_pos()
-            if scrcpy_rect:
-                click_in_scrcpy(x, y, scrcpy_rect)
-        elif key == keyboard.Key.backspace:
-            x,y = coordinates['backspace']
-            x,y = scale_coordinates(x,y)
-            scrcpy_rect = get_scrcpy_window_pos()
-            if scrcpy_rect:
-                click_in_scrcpy(x, y, scrcpy_rect)
+        if key == keyboard.Key.enter :
+            send_click_command('enter')
+        elif key == keyboard.Key.backspace :
+            send_click_command('backspace')
         pass
 # Function to click within scrcpy window
 def click_in_scrcpy(x, y, scrcpy_rect):
     scrcpy_x, scrcpy_y, _, _ = scrcpy_rect
     print('Clicking at:', scrcpy_x + x, scrcpy_y + y)
     pyautogui.click(scrcpy_x + x, scrcpy_y + y)
-
+def send_click_command(command):
+    x,y = coordinates[command]
+    x,y = scale_coordinates(x,y)
+    scrcpy_rect = get_scrcpy_window_pos()
+    if scrcpy_rect:
+        click_in_scrcpy(x, y, scrcpy_rect)
 
 coordinates = {'backbutton' : (81,660), 
                'startbutton': (769, 1556),
