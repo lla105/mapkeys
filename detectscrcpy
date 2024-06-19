@@ -27,7 +27,7 @@ def click_in_scrcpy(x, y, scrcpy_rect):
 
 # Define key mappings
 key_mappings = {
-    '1': (100, 100),    # Example: Pressing '1' will click at (1000, 1000) within scrcpy
+    '1': (800,1600),    # Example: Pressing '1' will click at (1000, 1000) within scrcpy
     # Add more key mappings as needed
 }
 
